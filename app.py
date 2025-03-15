@@ -113,7 +113,7 @@ def record_audio():
             sd.sleep(100)
 
 
-@app.route("/", methods=["POST"])
+@app.route("/analyze-text", methods=["POST"])
 def analyze_text():
     data = request.json
     text = data.get("text", "")
