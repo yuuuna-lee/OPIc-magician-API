@@ -6,8 +6,8 @@ phases:
       python: 3.9
     commands:
       - echo Installing dependencies...
-      - amazon-linux-extras install epel -y
-      - yum -y install portaudio-devel
+      - yum -y install epel-release || true
+      - yum -y install portaudio-devel || yum -y install portaudio-libs || echo "포터오디오 설치 실패"
       - pip install -r requirements.txt
       - pip install pytest
 
