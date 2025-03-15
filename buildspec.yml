@@ -31,3 +31,8 @@ artifacts:
     - .ebextensions/**/*
     - temp.wav
   discard-paths: no
+
+cache:
+  paths:
+    - "/root/.cache/pip/**/*"
+    - "/var/cache/yum/**/*"
