@@ -113,9 +113,39 @@ def record_audio():
             sd.sleep(100)
 
 
-@app.route("/")
-def index():
-    return "Server is running!"
+@app.route("/", methods=["POST"])
+def analyze_text():
+    data = request.json
+    text = data.get("text", "")
+
+    if not text:
+        return jsonify({"error": "No text provided"}), 400
+
+    # 형태소 분석 및 품사 태깅
+    pos_list = kiwi.analyze(text)[0][0]  # 첫 번째 분석 결과의 형태소 분석 결과
+
+    # 품사별 단어 카운팅
+    word_count_by_pos = {}
+    for token in pos_list:
+        pos = token.tag  # 품사
+        word = token.form  # 단어
+
+        if pos not in word_count_by_pos:
+            word_count_by_pos[pos] = Counter()
+        word_count_by_pos[pos][word] += 1
+
+    # 각 품사별 상위 단어 추출
+    result_by_pos = {}
+    for pos, counter in word_count_by_pos.items():
+        result_by_pos[pos] = counter.most_common(10)  # 상위 10개 단어
+
+    return jsonify(
+        {
+            "total_words": len(pos_list),
+            "unique_words": len(set(token.form for token in pos_list)),
+            "word_count_by_pos": result_by_pos,
+        }
+    )
 
 
 @app.route("/generate-sentences", methods=["POST"])
@@ -377,41 +407,5 @@ def get_feedback():
     return jsonify({"feedback": feedback})
 
 
-@app.route("/analyze-text", methods=["POST"])
-def analyze_text():
-    data = request.json
-    text = data.get("text", "")
-
-    if not text:
-        return jsonify({"error": "No text provided"}), 400
-
-    # 형태소 분석 및 품사 태깅
-    pos_list = kiwi.analyze(text)[0][0]  # 첫 번째 분석 결과의 형태소 분석 결과
-
-    # 품사별 단어 카운팅
-    word_count_by_pos = {}
-    for token in pos_list:
-        pos = token.tag  # 품사
-        word = token.form  # 단어
-
-        if pos not in word_count_by_pos:
-            word_count_by_pos[pos] = Counter()
-        word_count_by_pos[pos][word] += 1
-
-    # 각 품사별 상위 단어 추출
-    result_by_pos = {}
-    for pos, counter in word_count_by_pos.items():
-        result_by_pos[pos] = counter.most_common(10)  # 상위 10개 단어
-
-    return jsonify(
-        {
-            "total_words": len(pos_list),
-            "unique_words": len(set(token.form for token in pos_list)),
-            "word_count_by_pos": result_by_pos,
-        }
-    )
-
-
-# 이 파일이 직접 실행될 때만 서버 실행
 if __name__ == "__main__":
-    application.run(debug=False, host="0.0.0.0", port=5000)
+    app.run(debug=True, port=5001)
