@@ -113,6 +113,11 @@ def record_audio():
             sd.sleep(100)
 
 
+@app.route("/")
+def index():
+    return "Server is running!"
+
+
 @app.route("/generate-sentences", methods=["POST"])
 def generate_sentences():
     try:

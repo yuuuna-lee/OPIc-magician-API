@@ -2,7 +2,7 @@ flask
 flask-cors
 g4f
 gradio_client
-whisper
+openai-whisper
 sounddevice
 soundfile
 numpy
