@@ -14,12 +14,13 @@ import threading
 import queue
 from kiwipiepy import Kiwi
 from collections import Counter
+from openai import OpenAI
 
 app = Flask(__name__)
 CORS(app)
 
 client = G4FClient(api_key="not needed")  # g4f client
-whisper_model = whisper.load_model("tiny")
+openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 audio_queue = queue.Queue()
 recording = False
 
@@ -340,8 +341,13 @@ def stop_recording():
     audio_data = np.concatenate(audio_data)
     sf.write("temp.wav", audio_data, 16000)
 
-    result = whisper_model.transcribe("temp.wav")
-    return jsonify({"transcription": result["text"]})
+    # OpenAI API 사용 코드
+    with open("temp.wav", "rb") as audio_file:
+        result = openai_client.audio.transcriptions.create(
+            model="whisper-1", file=audio_file
+        )
+
+    return jsonify({"transcription": result.text})
 
 
 @app.route("/get-feedback", methods=["POST"])
@@ -405,6 +411,25 @@ def get_feedback():
         feedback[idx] = response.choices[0].message.content
 
     return jsonify({"feedback": feedback})
+
+
+@app.route("/transcribe", methods=["POST"])
+def transcribe_audio():
+    try:
+        if "file" not in request.files:
+            return jsonify({"error": "No file part"}), 400
+
+        file = request.files["file"]
+        file.save("temp.wav")
+
+        with open("temp.wav", "rb") as audio_file:
+            result = openai_client.audio.transcriptions.create(
+                model="whisper-1", file=audio_file
+            )
+
+        return jsonify({"transcription": result.text})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
