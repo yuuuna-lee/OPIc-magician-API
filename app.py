@@ -1,4 +1,3 @@
-import streamlit as st
 from g4f.client import Client as G4FClient
 from flask import Flask, request, jsonify
 from flask_cors import CORS
