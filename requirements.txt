@@ -1,0 +1,9 @@
+flask
+flask-cors
+g4f
+gradio_client
+whisper
+sounddevice
+soundfile
+numpy
+kiwipiepy
