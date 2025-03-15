@@ -19,7 +19,7 @@ app = Flask(__name__)
 CORS(app)
 
 client = G4FClient(api_key="not needed")  # g4f client
-whisper_model = whisper.load_model("small")
+whisper_model = whisper.load_model("tiny")
 audio_queue = queue.Queue()
 recording = False
 
