@@ -5,7 +5,6 @@ from flask_cors import CORS
 from gradio_client import Client as GradioClient
 import os
 import base64
-import whisper
 import random
 import sounddevice as sd
 import soundfile as sf
