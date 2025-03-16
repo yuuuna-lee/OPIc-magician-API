@@ -58,48 +58,21 @@ def translate_to_english(text):
 def load_questions_from_js():
     js_path = "./assets/Questions.js"
     try:
-        print("Attempting to load questions from:", js_path)  # 파일 경로 확인
+        print("Attempting to load questions from:", js_path)
         with open(js_path, "r", encoding="utf-8") as file:
             content = file.read()
-            print("File content length:", len(content))  # 파일 내용 로드 확인
-
+            
             # 서베이 문제 추출
             survey_start = content.find("서베이: [")
-            if survey_start == -1:  # 문자열을 찾지 못한 경우
+            if survey_start == -1:
                 print("Could not find 서베이: [ in the file")
                 return []
 
             survey_start += len("서베이: [")
             survey_end = content.find("],", survey_start)
-            if survey_end == -1:  # 끝 부분을 찾지 못한 경우
-                print("Could not find ending ], for survey questions")
-                return []
-
-            survey_str = content[survey_start:survey_end].strip()
-            print(
-                "Extracted survey string length:", len(survey_str)
-            )  # 추출된 문자열 확인
-
-            # 문자열을 리스트로 변환
-            questions = []
-            current_question = ""
-            in_quote = False
-
-            for char in survey_str:
-                if char in ['"', "'"]:
-                    in_quote = not in_quote
-                elif char == "," and not in_quote:
-                    if current_question.strip():
-                        questions.append(current_question.strip().strip('"').strip("'"))
-                    current_question = ""
-                else:
-                    current_question += char
-
-            if current_question.strip():
-                questions.append(current_question.strip().strip('"').strip("'"))
-
-            print("Number of questions loaded:", len(questions))  # 최종 문제 수 확인
-            print("First few questions:", questions[:3])  # 첫 몇 개 문제 확인
+            
+            # ... 문자열 파싱 로직 ...
+            
             return questions
     except Exception as e:
         print(f"Error loading questions: {e}")
