@@ -354,33 +354,36 @@ def get_feedback():
     feedback = {}
 
     for idx, answer in answers.items():
-        try:
-            response = g4f_client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": """You are an OPIC speaking test evaluator. Evaluate the student's answer and provide feedback in Korean using this format:
+        response = g4f_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": """당신은 OPIC 전문 채점관입니다. 
+                다음 OPIC 채점 기준에 따라 학생의 답변을 평가하고, 친근하고 명확한 한국어로 피드백을 제공해주세요.
 
-⭐ 종합 평가: [전반적인 평가 1-2문장]
-
-💪 잘한 점:
-• [구체적인 장점 2-3개]
-
-📝 개선할 점:
-• [개선사항 2-3개]
-
-💡 조언:
-• [실용적인 학습 조언 1-2개]""",
-                    },
-                    {"role": "user", "content": f"Please evaluate this OPIC answer: {answer}"},
-                ],
-                timeout=30  # 30초 타임아웃 설정
-            )
-            feedback[idx] = response.choices[0].message.content
-        except Exception as e:
-            print(f"Error getting feedback for answer {idx}: {str(e)}")
-            feedback[idx] = "죄송합니다. 피드백을 생성하는 중에 오류가 발생했습니다. 다시 시도해주세요."
+                ■ 평가 기준:
+                1. 상황대처능력
+                   - 주어진 상황과 질문에 맞는 적절한 답변
+                   - 영어 유창함과 자신감
+                
+                2. 영어 스타일
+                   - 발음, 억양, 표현방식
+                   - 자연스러운 영어 구사력
+                
+                3. 문법
+                   - 시제, 수일치 등 기본 문법
+                   - 답변 내용의 문법적 정확성
+                
+                4. 답변구조
+                   - 서론-본론-결론의 명확한 구성
+                   - 답변 내용의 체계적 전개
+                """,
+                },
+                {"role": "user", "content": f"다음 OPIC 답변을 평가해주세요: {answer}"},
+            ],
+        )
+        feedback[idx] = response.choices[0].message.content
 
     return jsonify({"feedback": feedback})
 
