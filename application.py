@@ -65,12 +65,12 @@ def load_questions_from_js():
             print("File content length:", len(content))  # 파일 내용 로드 확인
 
             # 서베이 문제 추출
-            survey_start = content.find("'서베이': [")
+            survey_start = content.find("서베이: [")
             if survey_start == -1:  # 문자열을 찾지 못한 경우
-                print("Could not find '서베이': [ in the file")
+                print("Could not find 서베이: [ in the file")
                 return []
 
-            survey_start += len("'서베이': [")
+            survey_start += len("서베이: [")
             survey_end = content.find("],", survey_start)
             if survey_end == -1:  # 끝 부분을 찾지 못한 경우
                 print("Could not find ending ], for survey questions")
