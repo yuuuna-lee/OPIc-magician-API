@@ -1,4 +1,4 @@
-from g4f.client import Client as G4FClient
+from g4f.client import Client
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from gradio_client import Client as GradioClient
@@ -22,7 +22,7 @@ CORS(
     },
 )
 
-client = GradioClient("https://huggingface.co/spaces/Samagra07/gpt_4o_mini")  # GPT model
+g4f_client = Client()  # GPT model
 stt_client = GradioClient("https://huggingface.co/spaces/mindspark121/Whisper-STT")  # STT model
 audio_queue = queue.Queue()
 recording = False
@@ -39,7 +39,7 @@ kiwi = Kiwi()
 
 def translate_to_english(text):
     try:
-        response = client.chat.completions.create(
+        response = g4f_client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {
@@ -216,7 +216,7 @@ def generate_sentences():
         Return only the JSON array of 10 sentence pairs, focusing on creating truly reusable, natural, and effective universal sentences that reflect authentic spoken Korean."""
 
         # GPT로 문장 생성
-        response = client.chat.completions.create(
+        response = g4f_client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {
@@ -353,7 +353,7 @@ def get_feedback():
     feedback = {}
 
     for idx, answer in answers.items():
-        response = client.chat.completions.create(
+        response = g4f_client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {
