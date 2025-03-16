@@ -426,17 +426,25 @@ def transcribe_audio():
         temp_file.write(audio_data)
         temp_file.close()
 
-        # Whisper STT 사용
-        result = stt_client.predict(
-            temp_path,
-            api_name="/predict"
-        )
-
-        return jsonify({"transcription": result})
+        try:
+            # Whisper STT 사용 시도
+            result = stt_client.predict(
+                temp_path,
+                api_name="/predict"
+            )
+            
+            if not result:
+                raise Exception("No transcription result received")
+                
+            return jsonify({"transcription": result})
+            
+        except Exception as e:
+            print(f"STT Processing error: {str(e)}")
+            return jsonify({"error": "음성 인식에 실패했습니다. 다시 시도해주세요."}), 500
 
     except Exception as e:
         print(f"Transcription error: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "음성 변환에 실패했습니다. 다시 시도해주세요."}), 500
 
     finally:
         # 임시 파일 정리
