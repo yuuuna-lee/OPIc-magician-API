@@ -2,8 +2,5 @@ flask
 flask-cors
 g4f
 gradio_client
-# sounddevice
-# soundfile
-# numpy
 kiwipiepy
 openai
