@@ -8,7 +8,7 @@ import random
 
 # import sounddevice as sd
 # import soundfile as sf
-# import numpy as np
+import numpy as np
 import threading
 import queue
 from kiwipiepy import Kiwi
@@ -333,25 +333,25 @@ def get_questions():
 #     return jsonify({"status": "recording started"})
 
 
-# @app.route("/stop-recording", methods=["POST"])
-# def stop_recording():
-#     global recording
-#     recording = False
+@app.route("/stop-recording", methods=["POST"])
+def stop_recording():
+    global recording
+    recording = False
 
-#     audio_data = []
-#     while not audio_queue.empty():
-#         audio_data.append(audio_queue.get())
+    audio_data = []
+    while not audio_queue.empty():
+        audio_data.append(audio_queue.get())
 
-#     audio_data = np.concatenate(audio_data)
-#     sf.write("temp.wav", audio_data, 16000)
+    audio_data = np.concatenate(audio_data)
+    sf.write("temp.wav", audio_data, 16000)
 
-#     # OpenAI API 사용 코드
-#     with open("temp.wav", "rb") as audio_file:
-#         result = openai_client.audio.transcriptions.create(
-#             model="whisper-1", file=audio_file
-#         )
+    # OpenAI API 사용 코드
+    with open("temp.wav", "rb") as audio_file:
+        result = openai_client.audio.transcriptions.create(
+            model="whisper-1", file=audio_file
+        )
 
-#     return jsonify({"transcription": result.text})
+    return jsonify({"transcription": result.text})
 
 
 @app.route("/get-feedback", methods=["POST"])
