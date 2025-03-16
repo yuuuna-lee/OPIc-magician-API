@@ -13,7 +13,6 @@ import threading
 import queue
 from kiwipiepy import Kiwi
 from collections import Counter
-from openai import OpenAI
 
 app = Flask(__name__)
 CORS(
@@ -23,8 +22,8 @@ CORS(
     },
 )
 
-client = G4FClient(api_key="not needed")  # g4f client
-openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+client = GradioClient("https://huggingface.co/spaces/Samagra07/gpt_4o_mini")  # GPT model
+stt_client = GradioClient("https://huggingface.co/spaces/mindspark121/Whisper-STT")  # STT model
 audio_queue = queue.Queue()
 recording = False
 
@@ -345,13 +344,7 @@ def stop_recording():
     audio_data = np.concatenate(audio_data)
     sf.write("temp.wav", audio_data, 16000)
 
-    # OpenAI API 사용 코드
-    with open("temp.wav", "rb") as audio_file:
-        result = openai_client.audio.transcriptions.create(
-            model="whisper-1", file=audio_file
-        )
-
-    return jsonify({"transcription": result.text})
+    return jsonify({"transcription": "Transcription not available with the new setup"})
 
 
 @app.route("/get-feedback", methods=["POST"])
@@ -426,12 +419,13 @@ def transcribe_audio():
         file = request.files["file"]
         file.save("temp.wav")
 
-        with open("temp.wav", "rb") as audio_file:
-            result = openai_client.audio.transcriptions.create(
-                model="whisper-1", file=audio_file
-            )
+        # Use Whisper STT through Gradio client instead of OpenAI
+        result = stt_client.predict(
+            "temp.wav",  # audio file path
+            api_name="/predict"
+        )
 
-        return jsonify({"transcription": result.text})
+        return jsonify({"transcription": result})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
