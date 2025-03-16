@@ -67,15 +67,10 @@ def load_questions_from_js():
             print(content[:200])  # 파일 내용 앞부분 출력
             
             # JavaScript 객체에서 서베이 배열 찾기
-            survey_start = content.find("서베이:")  # 따옴표 없이 찾기
+            survey_start = content.find("서베이")  # ':' 제거
             if survey_start == -1:
-                print("\nTrying with quotes...")
-                survey_start = content.find("'서베이':")  # 작은따옴표로 찾기
-                if survey_start == -1:
-                    survey_start = content.find('"서베이":')  # 큰따옴표로 찾기
-                    if survey_start == -1:
-                        print("Could not find survey marker in any format")
-                        return []
+                print("Could not find '서베이' in the file")
+                return []
 
             # 배열 시작 찾기
             array_start = content.find("[", survey_start)
@@ -430,12 +425,12 @@ def transcribe_audio():
         
         # base64 디코딩 및 임시 파일 저장
         audio_data = base64.b64decode(data['audio'])
-        temp_file.write(audio_data)
-        temp_file.close()
+        with open(temp_path, 'wb') as f:
+            f.write(audio_data)
 
-        # Whisper STT 사용 - handle_file 사용
+        # API 예제와 정확히 동일한 방식으로 호출
         result = stt_client.predict(
-            audio=handle_file(temp_path),  # handle_file로 감싸기
+            audio=handle_file(temp_path),  # handle_file 사용
             api_name="/predict"
         )
 
@@ -443,12 +438,11 @@ def transcribe_audio():
 
     except Exception as e:
         print(f"Transcription error: {str(e)}")
-        return jsonify({"error": "음성 변환에 실패했습니다. 다시 시도해주세요."}), 500
+        return jsonify({"error": str(e)}), 500
 
     finally:
-        # 임시 파일 정리
-        if temp_file and os.path.exists(temp_file.name):
-            os.unlink(temp_file.name)
+        if temp_file and os.path.exists(temp_path):
+            os.unlink(temp_path)
 
 
 if __name__ == "__main__":
