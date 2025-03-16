@@ -1,4 +1,4 @@
-from g4f.client import Client
+from g4f.client import Client as G4FClient
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from gradio_client import Client as GradioClient
@@ -22,8 +22,8 @@ CORS(
     },
 )
 
-g4f_client = Client()  # GPT model
-stt_client = GradioClient("https://huggingface.co/spaces/mindspark121/Whisper-STT")  # STT model
+g4f_client = G4FClient(api_key="not needed")  # GPT 모델용
+stt_client = GradioClient("https://huggingface.co/spaces/mindspark121/Whisper-STT")  # STT 모델용
 audio_queue = queue.Queue()
 recording = False
 
@@ -31,7 +31,7 @@ recording = False
 model_client = GradioClient("k2-fsa/text-to-speech")
 
 # TTS 처리를 위한 클라이언트
-tts_client = GradioClient("k2-fsa/text-to-speech")
+tts_client = GradioClient("k2-fsa/text-to-speech")  # TTS 모델용
 
 # Kiwi 형태소 분석기 초기화
 kiwi = Kiwi()
