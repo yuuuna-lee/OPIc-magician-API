@@ -63,12 +63,19 @@ def load_questions_from_js():
         print("Attempting to load questions from:", js_path)
         with open(js_path, "r", encoding="utf-8") as file:
             content = file.read()
+            print("\nFile content preview:")
+            print(content[:200])  # 파일 내용 앞부분 출력
             
             # JavaScript 객체에서 서베이 배열 찾기
             survey_start = content.find("서베이:")  # 따옴표 없이 찾기
             if survey_start == -1:
-                print("Could not find '서베이' in the file")
-                return []
+                print("\nTrying with quotes...")
+                survey_start = content.find("'서베이':")  # 작은따옴표로 찾기
+                if survey_start == -1:
+                    survey_start = content.find('"서베이":')  # 큰따옴표로 찾기
+                    if survey_start == -1:
+                        print("Could not find survey marker in any format")
+                        return []
 
             # 배열 시작 찾기
             array_start = content.find("[", survey_start)
