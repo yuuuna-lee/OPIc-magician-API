@@ -25,7 +25,7 @@ CORS(
 )
 
 g4f_client = G4FClient(api_key="not needed")  # GPT 모델용
-stt_client = GradioClient("mindspark121/Whisper-STT")  # STT 모델용
+stt_client = GradioClient("https://mindspark121-whisper-stt.hf.space")  # 전체 URL로 변경
 audio_queue = queue.Queue()
 recording = False
 
