@@ -398,11 +398,14 @@ def get_feedback():
 @app.route("/transcribe", methods=["POST"])
 def transcribe_audio():
     try:
-        if "file" not in request.files:
-            return jsonify({"error": "No file part"}), 400
+        data = request.json
+        if not data or 'audio' not in data:
+            return jsonify({"error": "No audio data provided"}), 400
 
-        file = request.files["file"]
-        file.save("temp.wav")
+        # base64 디코딩 및 임시 파일 저장
+        audio_data = base64.b64decode(data['audio'])
+        with open("temp.wav", "wb") as f:
+            f.write(audio_data)
 
         # Whisper STT 사용
         result = stt_client.predict(
@@ -410,8 +413,13 @@ def transcribe_audio():
             api_name="/predict"
         )
 
+        # 임시 파일 삭제
+        if os.path.exists("temp.wav"):
+            os.remove("temp.wav")
+
         return jsonify({"transcription": result})
     except Exception as e:
+        print(f"Transcription error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
