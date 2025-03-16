@@ -5,6 +5,7 @@ from gradio_client import Client as GradioClient
 import os
 import base64
 import random
+import tempfile  # 추가
 
 # import sounddevice as sd
 # import soundfile as sf
@@ -410,30 +411,40 @@ def get_feedback():
 
 @app.route("/transcribe", methods=["POST"])
 def transcribe_audio():
+    temp_file = None
     try:
         data = request.json
         if not data or 'audio' not in data:
             return jsonify({"error": "No audio data provided"}), 400
 
+        # 임시 파일 생성 (시스템의 임시 디렉토리 사용)
+        temp_file = tempfile.NamedTemporaryFile(suffix='.wav', delete=False)
+        temp_path = temp_file.name
+        
         # base64 디코딩 및 임시 파일 저장
         audio_data = base64.b64decode(data['audio'])
-        with open("temp.wav", "wb") as f:
-            f.write(audio_data)
+        temp_file.write(audio_data)
+        temp_file.close()  # 파일을 닫아야 Whisper가 읽을 수 있음
 
         # Whisper STT 사용
         result = stt_client.predict(
-            "temp.wav",  # audio file path
+            temp_path,  # 임시 파일 경로 사용
             api_name="/predict"
         )
 
-        # 임시 파일 삭제
-        if os.path.exists("temp.wav"):
-            os.remove("temp.wav")
-
         return jsonify({"transcription": result})
+
     except Exception as e:
         print(f"Transcription error: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+    finally:
+        # 임시 파일 정리
+        if temp_file is not None:
+            try:
+                os.unlink(temp_file.name)
+            except Exception as e:
+                print(f"Failed to remove temp file: {str(e)}")
 
 
 if __name__ == "__main__":
