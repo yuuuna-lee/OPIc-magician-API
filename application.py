@@ -23,7 +23,7 @@ CORS(
 )
 
 g4f_client = G4FClient(api_key="not needed")  # GPT 모델용
-stt_client = GradioClient("https://huggingface.co/spaces/mindspark121/Whisper-STT")  # STT 모델용
+stt_client = GradioClient("https://mindspark121-whisper-stt.hf.space")  # STT 모델용
 audio_queue = queue.Queue()
 recording = False
 
@@ -31,7 +31,7 @@ recording = False
 model_client = GradioClient("k2-fsa/text-to-speech")
 
 # TTS 처리를 위한 클라이언트
-tts_client = GradioClient("k2-fsa/text-to-speech")  # TTS 모델용
+tts_client = GradioClient("https://k2-fsa-text-to-speech.hf.space")  # TTS 모델용
 
 # Kiwi 형태소 분석기 초기화
 kiwi = Kiwi()
