@@ -16,7 +16,12 @@ from collections import Counter
 from openai import OpenAI
 
 app = Flask(__name__)
-CORS(app)
+CORS(
+    app,
+    resources={
+        r"/*": {"origins": ["http://localhost:3000", "http://127.0.0.1:3000", "*"]}
+    },
+)
 
 client = G4FClient(api_key="not needed")  # g4f client
 openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
