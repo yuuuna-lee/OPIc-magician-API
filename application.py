@@ -65,7 +65,7 @@ def load_questions_from_js():
             content = file.read()
             print("\nFile content preview:")
             print(content[:200])  # 파일 내용 앞부분 출력
-            
+
             # JavaScript 객체에서 서베이 배열 찾기
             survey_start = content.find("서베이")  # ':' 제거
             if survey_start == -1:
@@ -77,31 +77,35 @@ def load_questions_from_js():
             if array_start == -1:
                 print("Could not find opening bracket")
                 return []
-                
+
             array_start += 1  # Skip the opening bracket
-            
+
             # 괄호 매칭을 사용하여 정확한 끝 위치 찾기
             bracket_count = 1
             array_end = array_start
-            
+
             while bracket_count > 0 and array_end < len(content):
                 if content[array_end] == "[":
                     bracket_count += 1
                 elif content[array_end] == "]":
                     bracket_count -= 1
                 array_end += 1
-            
-            questions_str = content[array_start:array_end-1]
-            
+
+            questions_str = content[array_start : array_end - 1]
+
             # 각 질문을 분리 (쌍따옴표로 둘러싸인 문자열 추출)
             questions = re.findall(r'"([^"]+)"', questions_str)
-            
+
             # 주석과 빈 문자열 제거
-            questions = [q.strip() for q in questions if q.strip() and not q.strip().startswith("//")]
-            
+            questions = [
+                q.strip()
+                for q in questions
+                if q.strip() and not q.strip().startswith("//")
+            ]
+
             print(f"Total questions loaded: {len(questions)}")
             return questions
-            
+
     except Exception as e:
         print(f"Error loading questions: {e}")
         return []
@@ -416,22 +420,21 @@ def transcribe_audio():
     temp_file = None
     try:
         data = request.json
-        if not data or 'audio' not in data:
+        if not data or "audio" not in data:
             return jsonify({"error": "No audio data provided"}), 400
 
         # 시스템 임시 디렉토리에 파일 생성
-        temp_file = tempfile.NamedTemporaryFile(suffix='.wav', delete=False)
+        temp_file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
         temp_path = temp_file.name
-        
+
         # base64 디코딩 및 임시 파일 저장
-        audio_data = base64.b64decode(data['audio'])
-        with open(temp_path, 'wb') as f:
+        audio_data = base64.b64decode(data["audio"])
+        with open(temp_path, "wb") as f:
             f.write(audio_data)
 
         # API 예제와 정확히 동일한 방식으로 호출
         result = stt_client.predict(
-            audio=handle_file(temp_path),  # handle_file 사용
-            api_name="/predict"
+            audio=handle_file(temp_path), api_name="/predict"  # handle_file 사용
         )
 
         return jsonify({"transcription": result})
