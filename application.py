@@ -71,7 +71,16 @@ def load_questions_from_js():
             survey_start += len("서베이: [")
             survey_end = content.find("],", survey_start)
             
-            # ... 문자열 파싱 로직 ...
+            if survey_end == -1:
+                print("Could not find closing bracket")
+                return []
+            
+            # 문자열을 파싱하여 질문 목록 생성
+            questions_str = content[survey_start:survey_end].strip()
+            # 문자열을 줄바꿈으로 분리하고 따옴표와 공백 제거
+            questions = [q.strip().strip('"\'') for q in questions_str.split(",")]
+            # 빈 문자열 제거
+            questions = [q for q in questions if q]
             
             return questions
     except Exception as e:
