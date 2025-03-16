@@ -6,7 +6,6 @@ import os
 import base64
 import random
 import tempfile
-import time
 
 # import sounddevice as sd
 # import soundfile as sf
@@ -26,10 +25,7 @@ CORS(
 )
 
 g4f_client = G4FClient(api_key="not needed")  # GPT 모델용
-stt_client = GradioClient(
-    "mindspark121/Whisper-STT",
-    hf_token=None,  # Hugging Face 토큰이 있다면 여기에 추가
-)
+stt_client = GradioClient("mindspark121/Whisper-STT")  # 전체 URL로 변경
 audio_queue = queue.Queue()
 recording = False
 
@@ -382,6 +378,29 @@ def get_feedback():
                 4. 답변구조
                    - 서론-본론-결론의 명확한 구성
                    - 답변 내용의 체계적 전개
+
+                ■ 피드백 형식:
+
+                📌 종합 평가
+                [답변의 전반적인 강점과 인상적인 부분을 2-3줄로 요약]
+
+                💪 잘한 점
+                • [구체적인 예시와 함께 잘한 점 나열]
+                • [실제 답변에서 사용한 좋은 표현 인용]
+                
+                📝 개선할 점
+                • [개선이 필요한 부분을 구체적으로 설명]
+                • [실제 교정 예시 제시]
+
+                💡 학습 조언
+                • [실천 가능한 구체적인 학습 방법 제시]
+                • [다음 답변을 위한 핵심 표현 추천]
+
+                주의사항:
+                - 친근하고 격려하는 톤 유지
+                - 구체적인 예시와 함께 설명
+                - 중요한 영어 표현은 괄호 안에 병기
+                - 실천 가능한 구체적인 조언 제시
                 """,
                 },
                 {"role": "user", "content": f"다음 OPIC 답변을 평가해주세요: {answer}"},
@@ -400,57 +419,30 @@ def transcribe_audio():
         if not data or 'audio' not in data:
             return jsonify({"error": "No audio data provided"}), 400
 
-        # 임시 파일 생성
+        # 시스템 임시 디렉토리에 파일 생성
         temp_file = tempfile.NamedTemporaryFile(suffix='.wav', delete=False)
         temp_path = temp_file.name
         
-        # base64 디코딩 및 파일 저장
+        # base64 디코딩 및 임시 파일 저장
         audio_data = base64.b64decode(data['audio'])
         with open(temp_path, 'wb') as f:
             f.write(audio_data)
 
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                # API 호출 시 큐 관련 파라미터 추가
-                result = stt_client.predict(
-                    audio=handle_file(temp_path),
-                    api_name="/predict",
-                    fn_index=0
-                )
-                
-                # 결과가 None이 아닌지 확인
-                if result is not None:
-                    return jsonify({"transcription": result})
-                else:
-                    raise Exception("Transcription result is empty")
-            
-            except Exception as e:
-                print(f"Attempt {attempt + 1} failed: {str(e)}")
-                if attempt == max_retries - 1:  # 마지막 시도였다면
-                    raise
-                time.sleep(2)  # 재시도 전 2초 대기
-                
-                # 클라이언트 재초기화 및 새로운 세션 시작
-                global stt_client
-                stt_client = GradioClient(
-                    "mindspark121/Whisper-STT",
-                    hf_token=None,  # Hugging Face 토큰이 있다면 여기에 추가
-                )
+        # API 예제와 정확히 동일한 방식으로 호출
+        result = stt_client.predict(
+            audio=handle_file(temp_path),  # handle_file 사용
+            api_name="/predict"
+        )
+
+        return jsonify({"transcription": result})
 
     except Exception as e:
         print(f"Transcription error: {str(e)}")
-        return jsonify({
-            "error": "음성 변환에 실패했습니다. 다시 시도해주세요.",
-            "details": str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
 
     finally:
         if temp_file and os.path.exists(temp_path):
-            try:
-                os.unlink(temp_path)
-            except Exception as e:
-                print(f"Error removing temp file: {str(e)}")
+            os.unlink(temp_path)
 
 
 if __name__ == "__main__":
