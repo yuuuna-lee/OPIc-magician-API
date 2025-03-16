@@ -64,31 +64,33 @@ def load_questions_from_js():
             content = file.read()
             
             # JavaScript 객체에서 서베이 배열 찾기
-            survey_start = content.find("서베이: [")  # 작은따옴표 제거
+            survey_start = content.find("'서베이'")  # 작은따옴표로 찾기
             if survey_start == -1:
-                print("Could not find '서베이: [' in the file")
+                print("Could not find '서베이' in the file")
                 return []
 
-            survey_start += len("서베이: [")
-            
-            # 괄호 매칭을 사용하여 정확한 끝 위치 찾기
-            bracket_count = 1
-            survey_end = survey_start
-            
-            while bracket_count > 0 and survey_end < len(content):
-                if content[survey_end] == "[":
-                    bracket_count += 1
-                elif content[survey_end] == "]":
-                    bracket_count -= 1
-                survey_end += 1
-            
-            if bracket_count > 0:
-                print("Could not find matching closing bracket")
+            # 배열 시작 찾기
+            array_start = content.find("[", survey_start)
+            if array_start == -1:
+                print("Could not find opening bracket")
                 return []
+                
+            array_start += 1  # Skip the opening bracket
             
-            questions_str = content[survey_start:survey_end-1]
+            # 괄호 매칭으로 배열 끝 찾기
+            bracket_count = 1
+            array_end = array_start
             
-            # 각 질문을 분리 (쌍따옴표로 둘러싸인 문자열 추출)
+            while bracket_count > 0 and array_end < len(content):
+                if content[array_end] == "[":
+                    bracket_count += 1
+                elif content[array_end] == "]":
+                    bracket_count -= 1
+                array_end += 1
+            
+            questions_str = content[array_start:array_end-1]
+            
+            # 쌍따옴표로 둘러싸인 질문들 추출
             questions = re.findall(r'"([^"]+)"', questions_str)
             
             # 주석과 빈 문자열 제거
