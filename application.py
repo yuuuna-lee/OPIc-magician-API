@@ -411,45 +411,30 @@ def get_feedback():
 
 @app.route("/transcribe", methods=["POST"])
 def transcribe_audio():
-    temp_file = None
     try:
         data = request.json
         if not data or 'audio' not in data:
             return jsonify({"error": "No audio data provided"}), 400
 
-        # 시스템 임시 디렉토리에 파일 생성
-        temp_file = tempfile.NamedTemporaryFile(suffix='.wav', delete=False)
-        temp_path = temp_file.name
-        
         # base64 디코딩 및 임시 파일 저장
         audio_data = base64.b64decode(data['audio'])
-        temp_file.write(audio_data)
-        temp_file.close()
+        with open("temp.wav", "wb") as f:
+            f.write(audio_data)
 
-        try:
-            # Whisper STT 사용 시도
-            result = stt_client.predict(
-                temp_path,
-                api_name="/predict"
-            )
-            
-            if not result:
-                raise Exception("No transcription result received")
-                
-            return jsonify({"transcription": result})
-            
-        except Exception as e:
-            print(f"STT Processing error: {str(e)}")
-            return jsonify({"error": "음성 인식에 실패했습니다. 다시 시도해주세요."}), 500
+        # Whisper STT 사용
+        result = stt_client.predict(
+            "temp.wav",  # audio file path
+            api_name="/predict"
+        )
 
+        # 임시 파일 삭제
+        if os.path.exists("temp.wav"):
+            os.remove("temp.wav")
+
+        return jsonify({"transcription": result})
     except Exception as e:
         print(f"Transcription error: {str(e)}")
-        return jsonify({"error": "음성 변환에 실패했습니다. 다시 시도해주세요."}), 500
-
-    finally:
-        # 임시 파일 정리
-        if temp_file and os.path.exists(temp_file.name):
-            os.unlink(temp_file.name)
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
