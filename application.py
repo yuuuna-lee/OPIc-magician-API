@@ -25,7 +25,7 @@ CORS(
 )
 
 g4f_client = G4FClient(api_key="not needed")  # GPT 모델용
-stt_client = GradioClient("mindspark121/Whisper-STT")  # STT 모델용
+stt_client = GradioClient("mindspark121/Whisper-STT")  # 정확한 모델 경로 사용
 audio_queue = queue.Queue()
 recording = False
 
@@ -426,17 +426,20 @@ def transcribe_audio():
         temp_file.write(audio_data)
         temp_file.close()
 
-        # Whisper STT 사용
+        # Whisper STT API 호출 - 정확한 파라미터 사용
         result = stt_client.predict(
-            temp_path,
+            audio=temp_path,  # audio 파라미터 명시
             api_name="/predict"
         )
+
+        if not result:
+            return jsonify({"error": "No transcription result"}), 500
 
         return jsonify({"transcription": result})
 
     except Exception as e:
         print(f"Transcription error: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "음성 변환에 실패했습니다. 다시 시도해주세요."}), 500
 
     finally:
         # 임시 파일 정리
