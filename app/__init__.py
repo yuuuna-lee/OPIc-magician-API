@@ -14,15 +14,11 @@ def create_app():
         response.headers["Content-Type"] = "application/json; charset=utf-8"
         return response
 
-    # 환경 설정에 따라 CORS origins 설정
-    if os.environ.get("FLASK_ENV") == "production":
-        origins = ["https://op-ic-magician.vercel.app"]
-    else:
-        origins = ["http://localhost:5173", "http://127.0.0.1:5173"]
-
     CORS(
         app,
-        resources={r"/*": {"origins": origins}},
+        resources={
+            r"/*": {"origins": ["http://localhost:5173", "http://127.0.0.1:5173", "*"]}
+        },
     )
 
     # 블루프린트 등록
