@@ -23,7 +23,7 @@ CORS(
 )
 
 g4f_client = G4FClient(api_key="not needed")  # GPT 모델용
-stt_client = GradioClient("https://mindspark121-whisper-stt.hf.space")  # STT 모델용
+stt_client = GradioClient("mindspark121/Whisper-STT")  # STT 모델용
 audio_queue = queue.Queue()
 recording = False
 
@@ -392,7 +392,7 @@ def transcribe_audio():
         file = request.files["file"]
         file.save("temp.wav")
 
-        # Use Whisper STT through Gradio client instead of OpenAI
+        # Whisper STT 사용
         result = stt_client.predict(
             "temp.wav",  # audio file path
             api_name="/predict"
