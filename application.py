@@ -64,24 +64,35 @@ def load_questions_from_js():
             content = file.read()
             
             # JavaScript 객체에서 서베이 배열 찾기
-            survey_start = content.find("'서베이': [")
+            survey_start = content.find("서베이: [")  # 작은따옴표 제거
             if survey_start == -1:
-                print("Could not find '서베이': [ in the file")
+                print("Could not find '서베이: [' in the file")
                 return []
 
-            survey_start += len("'서베이': [")
-            # 다음 카테고리 시작 전까지의 내용 추출
-            survey_end = content.find("],", survey_start)
+            survey_start += len("서베이: [")
             
-            if survey_end == -1:
-                print("Could not find closing bracket")
+            # 괄호 매칭을 사용하여 정확한 끝 위치 찾기
+            bracket_count = 1
+            survey_end = survey_start
+            
+            while bracket_count > 0 and survey_end < len(content):
+                if content[survey_end] == "[":
+                    bracket_count += 1
+                elif content[survey_end] == "]":
+                    bracket_count -= 1
+                survey_end += 1
+            
+            if bracket_count > 0:
+                print("Could not find matching closing bracket")
                 return []
             
-            # 문자열을 파싱하여 질문 목록 생성
-            questions_str = content[survey_start:survey_end].strip()
+            questions_str = content[survey_start:survey_end-1]
             
             # 각 질문을 분리 (쌍따옴표로 둘러싸인 문자열 추출)
-            questions = re.findall(r'"([^"]*)"', questions_str)
+            questions = re.findall(r'"([^"]+)"', questions_str)
+            
+            # 주석과 빈 문자열 제거
+            questions = [q.strip() for q in questions if q.strip() and not q.strip().startswith("//")]
             
             print(f"Total questions loaded: {len(questions)}")
             return questions
