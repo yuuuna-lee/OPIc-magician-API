@@ -1,7 +1,7 @@
 from g4f.client import Client as G4FClient
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from gradio_client import Client as GradioClient
+from gradio_client import Client as GradioClient, handle_file
 import os
 import base64
 import random
@@ -25,7 +25,7 @@ CORS(
 )
 
 g4f_client = G4FClient(api_key="not needed")  # GPT 모델용
-stt_client = GradioClient("https://mindspark121-whisper-stt.hf.space")  # 전체 URL로 변경
+stt_client = GradioClient("mindspark121/Whisper-STT")  # 전체 URL로 변경
 audio_queue = queue.Queue()
 recording = False
 
@@ -65,7 +65,7 @@ def load_questions_from_js():
             content = file.read()
             
             # JavaScript 객체에서 서베이 배열 찾기
-            survey_start = content.find("'서베이':")  # 작은따옴표로 찾기
+            survey_start = content.find("서베이:")  # 따옴표 없이 찾기
             if survey_start == -1:
                 print("Could not find '서베이' in the file")
                 return []
@@ -426,9 +426,9 @@ def transcribe_audio():
         temp_file.write(audio_data)
         temp_file.close()
 
-        # Whisper STT 사용
+        # Whisper STT 사용 - handle_file 사용
         result = stt_client.predict(
-            temp_path,
+            audio=handle_file(temp_path),  # handle_file로 감싸기
             api_name="/predict"
         )
 
@@ -436,7 +436,7 @@ def transcribe_audio():
 
     except Exception as e:
         print(f"Transcription error: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "음성 변환에 실패했습니다. 다시 시도해주세요."}), 500
 
     finally:
         # 임시 파일 정리
