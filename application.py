@@ -5,7 +5,7 @@ from gradio_client import Client as GradioClient
 import os
 import base64
 import random
-import tempfile  # 추가
+import tempfile
 
 # import sounddevice as sd
 # import soundfile as sf
@@ -65,33 +65,31 @@ def load_questions_from_js():
             content = file.read()
             
             # JavaScript 객체에서 서베이 배열 찾기
-            survey_start = content.find("'서베이'")  # 작은따옴표로 찾기
+            survey_start = content.find("서베이: [")  # 작은따옴표 제거
             if survey_start == -1:
-                print("Could not find '서베이' in the file")
+                print("Could not find '서베이: [' in the file")
                 return []
 
-            # 배열 시작 찾기
-            array_start = content.find("[", survey_start)
-            if array_start == -1:
-                print("Could not find opening bracket")
-                return []
-                
-            array_start += 1  # Skip the opening bracket
+            survey_start += len("서베이: [")
             
-            # 괄호 매칭으로 배열 끝 찾기
+            # 괄호 매칭을 사용하여 정확한 끝 위치 찾기
             bracket_count = 1
-            array_end = array_start
+            survey_end = survey_start
             
-            while bracket_count > 0 and array_end < len(content):
-                if content[array_end] == "[":
+            while bracket_count > 0 and survey_end < len(content):
+                if content[survey_end] == "[":
                     bracket_count += 1
-                elif content[array_end] == "]":
+                elif content[survey_end] == "]":
                     bracket_count -= 1
-                array_end += 1
+                survey_end += 1
             
-            questions_str = content[array_start:array_end-1]
+            if bracket_count > 0:
+                print("Could not find matching closing bracket")
+                return []
             
-            # 쌍따옴표로 둘러싸인 질문들 추출
+            questions_str = content[survey_start:survey_end-1]
+            
+            # 각 질문을 분리 (쌍따옴표로 둘러싸인 문자열 추출)
             questions = re.findall(r'"([^"]+)"', questions_str)
             
             # 주석과 빈 문자열 제거
@@ -417,18 +415,18 @@ def transcribe_audio():
         if not data or 'audio' not in data:
             return jsonify({"error": "No audio data provided"}), 400
 
-        # 임시 파일 생성 (시스템의 임시 디렉토리 사용)
+        # 시스템 임시 디렉토리에 파일 생성
         temp_file = tempfile.NamedTemporaryFile(suffix='.wav', delete=False)
         temp_path = temp_file.name
         
         # base64 디코딩 및 임시 파일 저장
         audio_data = base64.b64decode(data['audio'])
         temp_file.write(audio_data)
-        temp_file.close()  # 파일을 닫아야 Whisper가 읽을 수 있음
+        temp_file.close()
 
         # Whisper STT 사용
         result = stt_client.predict(
-            temp_path,  # 임시 파일 경로 사용
+            temp_path,
             api_name="/predict"
         )
 
@@ -440,11 +438,8 @@ def transcribe_audio():
 
     finally:
         # 임시 파일 정리
-        if temp_file is not None:
-            try:
-                os.unlink(temp_file.name)
-            except Exception as e:
-                print(f"Failed to remove temp file: {str(e)}")
+        if temp_file and os.path.exists(temp_file.name):
+            os.unlink(temp_file.name)
 
 
 if __name__ == "__main__":
