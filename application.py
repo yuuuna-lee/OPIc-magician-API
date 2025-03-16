@@ -13,6 +13,7 @@ import threading
 import queue
 from kiwipiepy import Kiwi
 from collections import Counter
+import re
 
 app = Flask(__name__)
 CORS(
@@ -62,13 +63,14 @@ def load_questions_from_js():
         with open(js_path, "r", encoding="utf-8") as file:
             content = file.read()
             
-            # 서베이 문제 추출
-            survey_start = content.find("서베이: [")
+            # JavaScript 객체에서 서베이 배열 찾기
+            survey_start = content.find("'서베이': [")
             if survey_start == -1:
-                print("Could not find 서베이: [ in the file")
+                print("Could not find '서베이': [ in the file")
                 return []
 
-            survey_start += len("서베이: [")
+            survey_start += len("'서베이': [")
+            # 다음 카테고리 시작 전까지의 내용 추출
             survey_end = content.find("],", survey_start)
             
             if survey_end == -1:
@@ -77,12 +79,13 @@ def load_questions_from_js():
             
             # 문자열을 파싱하여 질문 목록 생성
             questions_str = content[survey_start:survey_end].strip()
-            # 문자열을 줄바꿈으로 분리하고 따옴표와 공백 제거
-            questions = [q.strip().strip('"\'') for q in questions_str.split(",")]
-            # 빈 문자열 제거
-            questions = [q for q in questions if q]
             
+            # 각 질문을 분리 (쌍따옴표로 둘러싸인 문자열 추출)
+            questions = re.findall(r'"([^"]*)"', questions_str)
+            
+            print(f"Total questions loaded: {len(questions)}")
             return questions
+            
     except Exception as e:
         print(f"Error loading questions: {e}")
         return []
