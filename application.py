@@ -57,7 +57,7 @@ def translate_to_english(text):
 
 
 def load_questions_from_js():
-    js_path = "../src/Questions.js"
+    js_path = "../assets/Questions.js"
     try:
         print("Attempting to load questions from:", js_path)  # 파일 경로 확인
         with open(js_path, "r", encoding="utf-8") as file:
