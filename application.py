@@ -5,9 +5,10 @@ from gradio_client import Client as GradioClient
 import os
 import base64
 import random
-import sounddevice as sd
-import soundfile as sf
-import numpy as np
+
+# import sounddevice as sd
+# import soundfile as sf
+# import numpy as np
 import threading
 import queue
 from kiwipiepy import Kiwi
@@ -106,10 +107,10 @@ def audio_callback(indata, frames, time, status):
         audio_queue.put(indata.copy())
 
 
-def record_audio():
-    with sd.InputStream(callback=audio_callback, channels=1, samplerate=16000):
-        while recording:
-            sd.sleep(100)
+# def record_audio():
+#     with sd.InputStream(callback=audio_callback, channels=1, samplerate=16000):
+#         while recording:
+#             sd.sleep(100)
 
 
 @app.route("/analyze-text", methods=["POST"])
@@ -319,33 +320,33 @@ def get_questions():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/start-recording", methods=["POST"])
-def start_recording():
-    global recording
-    recording = True
-    threading.Thread(target=record_audio).start()
-    return jsonify({"status": "recording started"})
+# @app.route("/start-recording", methods=["POST"])
+# def start_recording():
+#     global recording
+#     recording = True
+#     threading.Thread(target=record_audio).start()
+#     return jsonify({"status": "recording started"})
 
 
-@app.route("/stop-recording", methods=["POST"])
-def stop_recording():
-    global recording
-    recording = False
+# @app.route("/stop-recording", methods=["POST"])
+# def stop_recording():
+#     global recording
+#     recording = False
 
-    audio_data = []
-    while not audio_queue.empty():
-        audio_data.append(audio_queue.get())
+#     audio_data = []
+#     while not audio_queue.empty():
+#         audio_data.append(audio_queue.get())
 
-    audio_data = np.concatenate(audio_data)
-    sf.write("temp.wav", audio_data, 16000)
+#     audio_data = np.concatenate(audio_data)
+#     sf.write("temp.wav", audio_data, 16000)
 
-    # OpenAI API 사용 코드
-    with open("temp.wav", "rb") as audio_file:
-        result = openai_client.audio.transcriptions.create(
-            model="whisper-1", file=audio_file
-        )
+#     # OpenAI API 사용 코드
+#     with open("temp.wav", "rb") as audio_file:
+#         result = openai_client.audio.transcriptions.create(
+#             model="whisper-1", file=audio_file
+#         )
 
-    return jsonify({"transcription": result.text})
+#     return jsonify({"transcription": result.text})
 
 
 @app.route("/get-feedback", methods=["POST"])
